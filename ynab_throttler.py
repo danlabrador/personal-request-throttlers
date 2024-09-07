@@ -10,8 +10,8 @@ from throttlers.throttler import RequestThrottler
 @dataclass
 class _YNABThrottlerDefaultsBase:
     """Default values for the HubSpotThrottler class."""
-    max_requests_in_window: int = 160  # per window
-    rate_limit_window: int = 10  # in seconds
+    max_requests_in_window: int = 200  # per window
+    rate_limit_window: int = 3600  # in seconds
     throttle_start_percentage: float = 0.75 # Start throttling at 75% of the limit
     full_throttle_percentage: float = 0.90 # Fully throttle at 90% of the limit
 
@@ -49,7 +49,7 @@ class YNABThrottler(_YNABThrottlerDefaultsBase, RequestThrottler, _YNABThrottler
     def _update_rate_limits(self, response):
         """Update the rate limits based on HubSpot's response headers."""
         if 'X-HubSpot-RateLimit-Interval-Milliseconds' in response.headers:
-            self.rate_limit_window = int(response.headers['X-HubSpot-RateLimit-Interval-Milliseconds']) / 1000
+            self.rate_limit_window = 3600
         
         # Recalculate thresholds based on the updated rate limits
         self._calculate_throttle_thresholds()
@@ -66,7 +66,7 @@ class YNABThrottler(_YNABThrottlerDefaultsBase, RequestThrottler, _YNABThrottler
                 response = super()._make_request(
                     method, url, headers=headers, params=params, data=data, json=json, retries=3
                 )
-                self.request_position = int(response.headers.get('X-HubSpot-RateLimit-Max', '150')) - int(response.headers.get('X-HubSpot-RateLimit-Remaining', '150'))
+                self.request_position = int(response.headers.get('X-Rate-Limit', '0/200').split('/')[1]) - int(response.headers.get('X-Rate-Limit', '0/200').split('/')[0])
                 self._record_request()
                 self._update_rate_limits(response)
                 return response
