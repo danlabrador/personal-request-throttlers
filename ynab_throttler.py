@@ -1,4 +1,5 @@
 from dataclasses import InitVar, dataclass, field
+from pprint import pprint
 import random
 import time
 import requests
@@ -64,7 +65,7 @@ class YNABThrottler(_YNABThrottlerDefaultsBase, RequestThrottler, _YNABThrottler
 
             try:
                 response = super()._make_request(
-                    method, url, headers=headers, params=params, data=data, json=json, retries=3
+                    method, url, headers=headers, params=params, data=data, json=json
                 )
                 self.request_position = int(response.headers.get('X-Rate-Limit', '0/200').split('/')[1]) - int(response.headers.get('X-Rate-Limit', '0/200').split('/')[0])
                 self._record_request()
@@ -79,7 +80,7 @@ class YNABThrottler(_YNABThrottlerDefaultsBase, RequestThrottler, _YNABThrottler
                 else:
                     raise
 
-            except requests.exceptions.RequestException:
+            except requests.exceptions.RequestException as e:
                 if attempt < retries - 1:
                     time.sleep((backoff_factor ** attempt) + random.uniform(0, 1))
                 else:

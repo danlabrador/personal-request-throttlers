@@ -160,11 +160,12 @@ class RequestThrottler(_RequestThrottlerDefaultsBase):
         return False
     
     
-    def _make_request(self, method, url, headers=None, params=None, data=None):
+    def _make_request(self, method, url, headers=None, params=None, data=None, json=None):
         """Make a request with retries using exponential backoff and jitter."""
         headers = headers or {}
         params = params or {}
         data = data or {}
+        json = json or {}
     
         method_map = {
             'GET': requests.get,
@@ -182,7 +183,7 @@ class RequestThrottler(_RequestThrottlerDefaultsBase):
     
             # Make the request
             try:
-                response = method_map[method](url, headers=headers, params=params, data=data)
+                response = method_map[method](url, headers=headers, params=params, data=data, json=json)
 
                 try:
                     response.raise_for_status()
